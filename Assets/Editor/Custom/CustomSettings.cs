@@ -104,9 +104,9 @@ public static class CustomSettings
         _GT(typeof(AsyncOperation)).SetBaseType(typeof(System.Object)),        
         _GT(typeof(LightType)),
         _GT(typeof(SleepTimeout)),
-#if UNITY_5_3_OR_NEWER
-        _GT(typeof(UnityEngine.Experimental.Director.DirectorPlayer)),
-#endif
+//#if UNITY_5_3_OR_NEWER
+//        _GT(typeof(UnityEngine.Experimental.Director.DirectorPlayer)),
+//#endif
         _GT(typeof(Animator)),
         _GT(typeof(Input)),
         _GT(typeof(KeyCode)),

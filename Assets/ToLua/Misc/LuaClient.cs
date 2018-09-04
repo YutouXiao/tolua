@@ -118,7 +118,8 @@ public class LuaClient : MonoBehaviour
 
         luaState.BeginPreLoad();
         luaState.RegFunction("socket.core", LuaOpen_Socket_Core);
-        luaState.RegFunction("mime.core", LuaOpen_Mime_Core);                
+        luaState.RegFunction("mime.core", LuaOpen_Mime_Core);
+        luaState.RegFunction("snapshot", LuaOpen_Snapshot);
         luaState.EndPreLoad();                     
     }
 
@@ -131,6 +132,12 @@ public class LuaClient : MonoBehaviour
 
         luaState.OpenLibs(LuaDLL.luaopen_cjson_safe);
         luaState.LuaSetField(-2, "cjson.safe");                               
+    }
+
+    [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+    static int LuaOpen_Snapshot(IntPtr L)
+    {
+        return LuaDLL.luaopen_snapshot(L);
     }
 
     protected virtual void CallMain()
