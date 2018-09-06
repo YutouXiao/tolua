@@ -227,7 +227,7 @@ namespace LuaInterface
         public static extern int luaopen_cjson_safe(IntPtr L);
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int luaopen_snapshot(IntPtr L);
+        public static extern int luaopen_perflib(IntPtr L);
 
         /*
          ** pseudo-indices
