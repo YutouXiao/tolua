@@ -1,9 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using LuaInterface;
 
-public class MemoryUI : LuaClient
+public class ProfilerUI : LuaClient
 {
     /// <summary>
     /// Debug.log message
@@ -16,6 +16,31 @@ public class MemoryUI : LuaClient
     }
 
     #region Inspector Settings
+
+    /// <summary>
+    /// class to output lua memory message
+    /// </summary>
+    public class SnapMsg
+    {
+        public string func;
+        public string source;
+        public string total;
+        public string average;
+        public string relative;
+        public string called;
+
+        public SnapMsg(string _func, string _source, string _total, string _average, string _relative, string _called)
+        {
+            this.func = _func;
+            this.source = _source;
+            this.total = _total;
+            this.average = _average;
+            this.relative = _relative;
+            this.called = _called;
+        }
+    }
+    private SnapMsg receiveSnapMsg;
+    private List<SnapMsg> snapMsgs = new List<SnapMsg>();
 
     /// <summary>
     /// class to store title message
@@ -32,29 +57,6 @@ public class MemoryUI : LuaClient
         }
     }
     private List<PreMes> preMesList = new List<PreMes>();
-
-    /// <summary>
-    /// class to store lua message
-    /// </summary>
-    public class SnapMsg
-    {
-        public string name;
-        public string size;
-        public string type;
-        public string id;
-        public string info;
-
-        public SnapMsg(string _name,string _size, string _type, string _id, string _info)
-        {
-            this.name = _name;
-            this.size = _size;
-            this.type = _type;
-            this.id = _id;
-            this.info = _info;
-        }
-    }
-    private SnapMsg receiveSnapMsg;
-    private List<SnapMsg> snapMsgs = new List<SnapMsg>();
 
     /// <summary>
     /// The hotkey to show and hide the console window.
@@ -228,11 +230,6 @@ public class MemoryUI : LuaClient
                 DistinctList();
             }
         }
-        if (GUILayout.Button(clearLabel))
-        {
-            preMesList.Clear();
-            snapMsgs.Clear();
-        }
         collapse = GUILayout.Toggle(collapse, collapseLabel, GUILayout.ExpandWidth(false));
         GUILayout.EndHorizontal();
 
@@ -242,29 +239,15 @@ public class MemoryUI : LuaClient
         if (GUILayout.Button(takeSnap))
         {
             snapMsgs.Clear();
-            AddTitle();
             TakeSnapshot();
             if (collapse)
             {
                 DistinctList();
             }
         }
-        GUILayout.EndHorizontal();
-
-        GUILayout.BeginHorizontal();
-        GUILayout.Label("snap1", GUILayout.Width(40));
-        textToCal1 = GUILayout.TextField(textToCal1, 30);
-        GUILayout.Label("snap2", GUILayout.Width(40));
-        textToCal2 = GUILayout.TextField(textToCal2, 30);
-        if (GUILayout.Button(CalculSnap))
+        if (GUILayout.Button(clearLabel))
         {
-            preMesList.Clear();
             snapMsgs.Clear();
-            CalculationSnap();
-            if (collapse)
-            {
-                DistinctList();
-            }
         }
         GUILayout.EndHorizontal();
     }
@@ -308,15 +291,17 @@ public class MemoryUI : LuaClient
     }
 
     // Use this for initialization
-    void Start () {                            //todo
-		string fullPath = Application.dataPath + "\\ToLua\\Examples\\25_MemoryUI";
-        luaState.AddSearchPath(fullPath); 
+    void Start()
+    {                       //todo
+        string fullPath = Application.dataPath + "\\ToLua\\Examples\\26_ProfilerUI";
+        luaState.AddSearchPath(fullPath);
 
-        luaState.Require("memory");
-	}
-	
-	// Update is called once per frame
-	void Update () {
+        luaState.Require("profiler");
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
         if (Input.GetKeyDown(toggleKey))
         {
             visible = !visible;
@@ -331,16 +316,25 @@ public class MemoryUI : LuaClient
 
     void TakeSnapshot()
     {
-        LuaTable receiveTable = new LuaTable(0, luaState);
-        LuaFunction func = luaState.GetFunction("memtools.takesnap");
-        if (func != null)
+        LuaFunction func1 = luaState.GetFunction("profiler.start");
+        if (func1 != null)
         {
-            func.BeginPCall();
-            func.Push(textToSnap);
-            func.PCall();
-            receiveTable = func.CheckLuaTable();
+            func1.BeginPCall();
+            func1.PCall();
             //int num = (int)func.CheckNumber();
-            func.EndPCall();
+            func1.EndPCall();
+        }
+
+        LuaTable receiveTable = new LuaTable(0, luaState);
+        LuaFunction func2 = luaState.GetFunction("profiler.report");
+        if (func2 != null)
+        {
+            func2.BeginPCall();
+            func2.Push(textToSnap);
+            func2.PCall();
+            receiveTable = func2.CheckLuaTable();
+            //int num = (int)func.CheckNumber();
+            func2.EndPCall();
         }
 
         List<LuaTable> innerTables = new List<LuaTable>();
@@ -353,24 +347,34 @@ public class MemoryUI : LuaClient
         for (int j = 0; j < innerTables.Count; j++)
         {
             receiveSnapMsg = new SnapMsg(
-                innerTables[j].RawGet<string, string>("name"),
-                innerTables[j].RawGet<string, string>("size"),
-                innerTables[j].RawGet<string, string>("type"),
-                innerTables[j].RawGet<string, string>("id"),
-                innerTables[j].RawGet<string, string>("info")
+                innerTables[j].RawGet<string, string>("func"),
+                innerTables[j].RawGet<string, string>("source"),
+                innerTables[j].RawGet<string, string>("total"),
+                innerTables[j].RawGet<string, string>("average"),
+                innerTables[j].RawGet<string, string>("relative"),
+                innerTables[j].RawGet<string, string>("called")
                 );
             snapMsgs.Add(receiveSnapMsg);
+        }
+        
+        LuaFunction func3 = luaState.GetFunction("profiler.stop");
+        if (func3 != null)
+        {
+            func3.BeginPCall();
+            func3.PCall();
+            //int num = (int)func.CheckNumber();
+            func3.EndPCall();
         }
     }
 
     void FilterSnapshot()
     {
         LuaTable receiveTable = new LuaTable(0, luaState);
-        LuaFunction func = luaState.GetFunction("memtools.filterstr");
+        LuaFunction func = luaState.GetFunction("profiler.luafilter");
         if (func != null)
         {
             func.BeginPCall();
-            func.Push(textToSnap); 
+            func.Push(textToSnap);
             func.Push(textToFilter);
             func.PCall();
             receiveTable = func.CheckLuaTable();
@@ -388,46 +392,12 @@ public class MemoryUI : LuaClient
         for (int j = 0; j < innerTables.Count; j++)
         {
             receiveSnapMsg = new SnapMsg(
-                innerTables[j].RawGet<string, string>("name"),
-                innerTables[j].RawGet<string, string>("size"),
-                innerTables[j].RawGet<string, string>("type"),
-                innerTables[j].RawGet<string, string>("id"),
-                innerTables[j].RawGet<string, string>("info")
-                );
-            snapMsgs.Add(receiveSnapMsg);
-        }
-    }
-
-    void CalculationSnap()
-    {
-        LuaTable receiveTable = new LuaTable(0, luaState);
-        LuaFunction func = luaState.GetFunction("memtools.calculation");
-        if (func != null)
-        {
-            func.BeginPCall();
-            func.Push(textToCal1);
-            func.Push(textToCal2);
-            func.PCall();
-            receiveTable = func.CheckLuaTable();            
-            //int num = (int)func.CheckNumber();
-            func.EndPCall();
-        }
-
-        List<LuaTable> innerTables = new List<LuaTable>();
-        for (int i = 1; i <= receiveTable.Length; i++)
-        {
-
-            innerTables.Add(receiveTable.RawGet<int, LuaTable>(i));
-        }
-
-        for (int j = 0; j < innerTables.Count; j++)
-        {
-            receiveSnapMsg = new SnapMsg(
-                innerTables[j].RawGet<string, string>("name"),
-                innerTables[j].RawGet<string, string>("size"),
-                innerTables[j].RawGet<string, string>("type"),
-                innerTables[j].RawGet<string, string>("id"),
-                innerTables[j].RawGet<string, string>("info")
+                innerTables[j].RawGet<string, string>("func"),
+                innerTables[j].RawGet<string, string>("source"),
+                innerTables[j].RawGet<string, string>("total"),
+                innerTables[j].RawGet<string, string>("average"),
+                innerTables[j].RawGet<string, string>("relative"),
+                innerTables[j].RawGet<string, string>("called")
                 );
             snapMsgs.Add(receiveSnapMsg);
         }
@@ -451,51 +421,18 @@ public class MemoryUI : LuaClient
         if (snapMsgs != null && snapMsgs.Count > 0)
         {
             float win = windowRect.width * 0.95f;
-            //{0,20}:{1,10}:{2,15}:{3,25}:{4,30}
-            float w1 = win * 0.2f; var w2 = win * 0.1f; var w3 = win * 0.15f; var w4 = win * 0.25f; var w5 = win * 0.3f;
+            //{0,15}:{1,10}:{2,15}:{3,20}:{4,20}:{5,20}
+            float w1 = win * 0.15f; var w2 = win * 0.1f; var w3 = win * 0.15f; var w4 = win * 0.2f; var w5 = win * 0.2f; var w6 = win * 0.2f;
             for (int i = 0; i < snapMsgs.Count; i++)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(snapMsgs[i].name, GUILayout.Width(w1));
-                GUILayout.Label(snapMsgs[i].size, GUILayout.Width(w2));
-                GUILayout.Label(snapMsgs[i].type, GUILayout.Width(w3));
-                GUILayout.Label(snapMsgs[i].id, GUILayout.Width(w4));
-                GUILayout.Label(snapMsgs[i].info, GUILayout.Width(w5));
+                GUILayout.Label(snapMsgs[i].func, GUILayout.Width(w1));
+                GUILayout.Label(snapMsgs[i].source, GUILayout.Width(w2));
+                GUILayout.Label(snapMsgs[i].total, GUILayout.Width(w3));
+                GUILayout.Label(snapMsgs[i].average, GUILayout.Width(w4));
+                GUILayout.Label(snapMsgs[i].relative, GUILayout.Width(w5));
+                GUILayout.Label(snapMsgs[i].called, GUILayout.Width(w6));
                 GUILayout.EndHorizontal();
-            }
-        }
-    }
-
-    /// <summary>
-    /// add first two lines message
-    /// </summary>
-    void AddTitle()
-    {
-        string memory_total = "";
-        LuaFunction func = luaState.GetFunction("memtools.total");
-        if (func != null)
-        {
-            func.BeginPCall();
-            func.PCall();
-            memory_total = func.CheckValue<string>();
-            //int num = (int)func.CheckNumber();
-            func.EndPCall();
-        }
-
-        if (preMesList != null)
-        {
-            if (preMesList.Count == 0)
-            {
-                preMesList.Add(new PreMes("snapshot key: ", textToSnap));
-                preMesList.Add(new PreMes("total memory: ", memory_total));
-            }
-            if (preMesList.Count == 2)
-            {
-                preMesList[0].title = "snapshot key: ";
-                preMesList[0].message = textToSnap;
-
-                preMesList[1].title = "total memory: ";
-                preMesList[1].message = memory_total;
             }
         }
     }
@@ -511,7 +448,7 @@ public class MemoryUI : LuaClient
             checkState = 0;
             for (int j = 0; j < snapMsgs.Count; j++)
             {
-                if (snapMsgs[i].name == snapMsgs[j].name)
+                if (snapMsgs[i].func == snapMsgs[j].func)
                 {
                     checkState += 1;
                 }
