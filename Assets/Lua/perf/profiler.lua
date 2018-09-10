@@ -72,9 +72,9 @@ local function report_output_line(rp, stat_interval)
     local total_time    = string.format("%04.3f", rp.total_time * 1000)
     local average_time    = string.format("%04.3f", rp.total_time / rp.count * 1000)
     local relative_time = string.format("%03.2f%%", (rp.total_time / stat_interval) * 100 )
-    local count         = string.format("%7i", rp.count)
+    local count         = string.format("%s", rp.count)
         
-    return string.format("|%-40.40s: %-50.50s: %-12s: %-12s: %-12s: %-12s|\n", name, source, total_time, average_time, relative_time, count)
+    return string.format("|%s+ %s+ %s+ %s+ %s+ %s", name, source, total_time, average_time, relative_time, count)
 end
 
 local sort_funcs = {
@@ -87,7 +87,7 @@ local function report(sort_by)
     sethook()
     local sort_func = type(sort_by) == 'function' and sort_by or sort_funcs[sort_by]
     
-    local FORMAT_HEADER_LINE       = "|%-40s: %-50s: %-12s: %-12s: %-12s: %-12s|\n"
+    local FORMAT_HEADER_LINE       = "|%s+ %s+ %s+ %s+ %s+ %s"
     local header = string.format( FORMAT_HEADER_LINE, "FUNCTION", "SOURCE", "TOTAL(MS)", "AVERAGE(MS)", "RELATIVE", "CALLED" )
     local stat_interval = get_time() - (start_time or get_time())
     
@@ -103,7 +103,7 @@ local function report(sort_by)
     
     table.sort(report_list, sort_func or sort_funcs.TOTAL)
     
-    local output = header
+    local output = "|Report Message" .. header
     
     for i, rp in ipairs(report_list) do
         output = output .. rp.output
