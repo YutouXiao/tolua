@@ -53,6 +53,7 @@ namespace Consolation
             public string called;
         }
         private List<SnapMsg> snapMsgs = new List<SnapMsg>();
+        private List<SnapMsg> screenMsgs = new List<SnapMsg>();
         // Visual elements:
 
         /// <summary>
@@ -175,6 +176,7 @@ namespace Consolation
             if (GUILayout.Button(clearLabel))
             {
                 snapMsgs.Clear();
+                screenMsgs.Clear();
             }
             GUILayout.EndHorizontal();
         }
@@ -202,6 +204,15 @@ namespace Consolation
                         relative = logMember[4],
                         called = logMember[5],
                     });
+                    screenMsgs.Add(new SnapMsg
+                    {
+                        func = logMember[0],
+                        source = logMember[1],
+                        total = logMember[2],
+                        average = logMember[3],
+                        relative = logMember[4],
+                        called = logMember[5],
+                    });
                 }
             }
         }
@@ -211,20 +222,20 @@ namespace Consolation
         /// </summary>
         void LabelPrint()
         {
-            if (snapMsgs != null && snapMsgs.Count > 0)
+            if (screenMsgs != null && screenMsgs.Count > 0)
             {
                 float win = windowRect.width * 0.95f;
                 //{0,15}:{1,20}:{2,15}:{3,15}:{4,15}:{5,15}
                 float w1 = win * 0.15f; var w2 = win * 0.2f; var w3 = win * 0.15f; var w4 = win * 0.15f; var w5 = win * 0.15f; var w6 = win * 0.15f;
-                for (int i = 0; i < snapMsgs.Count; i++)
+                for (int i = 0; i < screenMsgs.Count; i++)
                 {
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(snapMsgs[i].func, GUILayout.Width(w1));
-                    GUILayout.Label(snapMsgs[i].source, GUILayout.Width(w2));
-                    GUILayout.Label(snapMsgs[i].total, GUILayout.Width(w3));
-                    GUILayout.Label(snapMsgs[i].average, GUILayout.Width(w4));
-                    GUILayout.Label(snapMsgs[i].relative, GUILayout.Width(w5));
-                    GUILayout.Label(snapMsgs[i].called, GUILayout.Width(w6));
+                    GUILayout.Label(screenMsgs[i].func, GUILayout.Width(w1));
+                    GUILayout.Label(screenMsgs[i].source, GUILayout.Width(w2));
+                    GUILayout.Label(screenMsgs[i].total, GUILayout.Width(w3));
+                    GUILayout.Label(screenMsgs[i].average, GUILayout.Width(w4));
+                    GUILayout.Label(screenMsgs[i].relative, GUILayout.Width(w5));
+                    GUILayout.Label(screenMsgs[i].called, GUILayout.Width(w6));
                     GUILayout.EndHorizontal();
                 }
             }
@@ -235,36 +246,16 @@ namespace Consolation
         /// </summary>
         void FilterContent()
         {
-            for (int i = 1; i < snapMsgs.Count;)
+            screenMsgs.Clear();
+            if (snapMsgs != null && snapMsgs.Count > 0)
             {
-                if (!snapMsgs[i].func.Contains(textToFilter))
+                screenMsgs.Add(snapMsgs[0]);
+                for (int i = 1; i < snapMsgs.Count; i++)
                 {
-                    snapMsgs.Remove(snapMsgs[i]);
-                    continue;
-                }
-                i++;
-            }
-        }
-
-        /// <summary>
-        /// distinct label message list 
-        /// </summary>
-        void DistinctList()
-        {
-            int checkState = 0;
-            for (int i = 0; i < snapMsgs.Count; i++)
-            {
-                checkState = 0;
-                for (int j = 0; j < snapMsgs.Count; j++)
-                {
-                    if (snapMsgs[i].func == snapMsgs[j].func)
+                    if (snapMsgs[i].func.Contains(textToFilter))
                     {
-                        checkState += 1;
+                        screenMsgs.Add(snapMsgs[i]);
                     }
-                }
-                if (checkState >= 2)
-                {
-                    snapMsgs.Remove(snapMsgs[i]);
                 }
             }
         }
