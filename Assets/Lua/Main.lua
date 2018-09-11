@@ -16,13 +16,13 @@ function Main()
 	-- print('total memory:', memory.total())
 	-- print(memory.snapshot())
 	
-	local profiler = require 'perf.profiler'
-	profiler.start()
-	print('hello world')
-	print(profiler.report())
-	print('hello Earth')
-	print(profiler.report())
-	profiler.stop()
+	-- local profiler = require 'perf.profiler'
+	-- profiler.start()
+	-- print('hello world')
+	-- print(profiler.report())
+	-- print('hello Earth')
+	-- print(profiler.report())
+	-- profiler.stop()
 end
 
 --场景切换通知
