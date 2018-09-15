@@ -44,9 +44,9 @@ namespace LuaMonitor
             {
                 if (EditorApplication.isPlaying)
                 {
-                    if (main.Instance != null)
+                    if (ApplitionData.Instance != null)
                     {
-                        iniList = new List<LuaProfilerData>(main.Instance.dataList);
+                        iniList = new List<LuaProfilerData>(ApplitionData.Instance.dataList);
                         dataList = new List<LuaProfilerData>(iniList);
                     }
                 }

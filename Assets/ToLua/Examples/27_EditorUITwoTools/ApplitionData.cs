@@ -9,12 +9,12 @@ using LuaMonitor;
 
 namespace LuaEditorUI
 {
-    public class main : MonoBehaviour
+    public class ApplitionData : MonoBehaviour
     {
-        private static main _instance;
+        private static ApplitionData _instance;
         public List<LuaProfilerData> dataList = new List<LuaProfilerData>();
         
-        public static main Instance
+        public static ApplitionData Instance
         {
             get
             {
