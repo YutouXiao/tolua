@@ -26,11 +26,13 @@ local function filterstr(key, text)
     local item = 1
 	output[1] = {name = "NAME", size="SIZE", type="TYPE", id="ID", info = "INFO"}
     
-    for i, rp in ipairs(ss) do
-        if string.find(string.lower(rp.name), text) ~= nil then 
-            item = item + 1
-            output[item] = {}
-            output[item]["name"],output[item]["size"],output[item]["type"],output[item]["id"],output[item]["info"] = string_format_report(rp)
+    if ss ~= nil then 
+        for i, rp in ipairs(ss) do
+            if string.find(string.lower(rp.name), text) ~= nil then 
+                item = item + 1
+                output[item] = {}
+                output[item]["name"],output[item]["size"],output[item]["type"],output[item]["id"],output[item]["info"] = string_format_report(rp)
+            end
         end
     end
     
